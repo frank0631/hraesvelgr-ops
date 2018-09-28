@@ -1,0 +1,45 @@
+version: '2.1'
+services:
+
+  frontend:
+    image: frank0631/ratatoskr
+    ports:
+      - "80:80"
+    env_file:
+      - .env
+
+  backend:
+    image: frank0631/huginn
+    depends_on:
+      - migrations
+    ports:
+      - "9000:9000"
+    links:
+      - "database:db"
+    env_file:
+      - .env
+
+  database:
+    image: mysql
+    volumes:
+      - mysql-datavolume:/var/lib/mysql
+    env_file:
+      - .env
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  migrations:
+    image: frank0631/veorfolnir
+    depends_on:
+      database:
+        condition: service_healthy
+    links:
+      - "database:db"
+    env_file:
+      - .env
+
+volumes:
+  mysql-datavolume:
